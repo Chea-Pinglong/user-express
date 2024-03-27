@@ -1,15 +1,17 @@
-import { ZodError, ZodSchema } from "zod";
-import { Request, Response, NextFunction } from "express";           
-const validateInput = (schema: ZodSchema) =>{
-    return(req: Request, res: Response,next: NextFunction)=>{
+import {Request, Response, NextFunction} from "express";
+import { ZodSchema, ZodError } from "zod";
+import InvalidInputError from "../errors/invalidInputError";
+
+const validateInput = (schema: ZodSchema)=>{
+    return (req: Request, res: Response, next: NextFunction) => {
         try{
             schema.parse(req.body);
-            next();
+            next()
         }catch(error: unknown) {
-            if(error instanceof ZodError){
-                return next(error);
+            if(error instanceof ZodError) {
+                return next(new InvalidInputError(error))
             }
-            next(error);
+            next(error)
         }
     }
 }

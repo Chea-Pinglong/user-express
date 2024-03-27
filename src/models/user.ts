@@ -1,13 +1,13 @@
-
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Document, Model } from "mongoose";
 import moment from "moment";
+import { transform } from "typescript";
 /**
  * User schema for MongoDB.
  * Defines the structure of a User document in the users collection.
  * Includes name, email, password hash, and date registered.
  */
 
-export interface UserDocument extends Document {
+export interface IUserDocument extends Document {
   name: string;
   age?: number;
   dateOfBirth: Date;
@@ -15,47 +15,59 @@ export interface UserDocument extends Document {
   password: string;
 }
 
-const userSchema: Schema<UserDocument> = new Schema({
-  name: {
-    type: String,
-    required: true,
-  
+export interface IUserModel extends Model<IUserDocument> {}
+
+const userSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+    },
+    dateOfBirth: {
+      type: Date,
+      required: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    password: {
+      type: String,
+      required: true,
+    },
   },
-  dateOfBirth: {
-    type: Date,
-    required: true,
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  password: {
-    type: String,
-    required: true,
-  },
-});
+  {
+    toJSON: {
+      transform(doc, ret) {
+        delete ret.password;
+        delete ret.salt;
+        delete ret.__v;
+      },
+    },
+  }
+);
 
 // Define a virtual property 'age' based on 'dateOfBirth'
-userSchema.virtual("age").get(function (this: UserDocument) {
+userSchema.virtual("age").get(function (this: IUserDocument) {
   const currentDate = moment();
   const birthDate = moment(this.dateOfBirth);
   return currentDate.diff(birthDate, "years");
 });
 
 // Ensure virtual fields are included when converting document to JSON
-userSchema.set("toJSON", { virtuals: true });
+// userSchema.set("toJSON", { virtuals: true });
 
 // Middleware to update 'age' field before saving/updating document
-userSchema.pre<UserDocument>("save", function (next) {
+userSchema.pre<IUserDocument>("save", function (next) {
   this.age = moment().diff(moment(this.dateOfBirth), "years");
   next();
 });
 
 // Middleware to update 'age' field after findOneAndUpdate operation
-userSchema.post<UserDocument>(
+userSchema.post<IUserDocument>(
   "findOneAndUpdate",
-  function (doc: UserDocument | null) {
+  function (doc: IUserDocument | null) {
     if (doc) {
       const currentDate = moment();
       const birthDate = moment(doc.dateOfBirth);
@@ -63,5 +75,5 @@ userSchema.post<UserDocument>(
     }
   }
 );
-
-export default mongoose.model<UserDocument>("User", userSchema);
+const UserModel = mongoose.model<IUserDocument, IUserModel>("User", userSchema);
+export default UserModel;
