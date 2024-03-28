@@ -4,5 +4,8 @@
     "spec": {
       "outputDirectory": "public",
       "specVersion": 3
+    },
+    "routes": {
+      "routesDir": "src/routes"
     }
   }

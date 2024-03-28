@@ -23,7 +23,7 @@
   "scripts": {
     "test": "jest --watchAll",
     "build": "tsc",
-    "swagger": "tsoa spec",
+    "swagger": "npx tsoa spec-and-routes",
     "swagger:watch": "nodemon --watch 'src/**/*' --exec 'yarn swagger'",
     "serve": "cross-env NODE_ENV=development nodemon src/app.ts",
     "start": "node build/app.js",
@@ -43,6 +43,7 @@
   "dependencies": {
     "@types/node-fetch": "^2.6.11",
     "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.2",
     "concurrently": "^8.2.2",
     "ejs": "^3.1.9",
@@ -51,6 +52,7 @@
     "https": "^1.0.0",
     "moment-timezone": "^0.5.45",
     "mongoose": "^8.2.1",
+    "mongoose-paginate": "^5.0.3",
     "node-fetch": "^3.3.2",
     "redoc-express": "^2.1.0",
     "swagger": "^0.0.1",

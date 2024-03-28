@@ -7,6 +7,7 @@ import { errorHandler } from "./middlewares/errorHandler";
 import swaggerUi from "swagger-ui-express"
 import * as swaggerDocument from "../public/swagger.json"
 import redoc from "redoc-express"
+import { RegisterRoutes } from "./routes/routes";
 
 /**
  * Initializes Express app and connects to MongoDB database.
@@ -20,7 +21,8 @@ const app = express();
   app.use(express.static("public"))
 
   // Routes
-  app.use(userRoutes);
+  // app.use(userRoutes);
+  RegisterRoutes(app)
 
   app.get("/docs", redoc({
     title: "API Docs",

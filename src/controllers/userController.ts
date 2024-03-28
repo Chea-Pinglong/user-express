@@ -1,193 +1,3 @@
-// {
-// import { NextFunction, Request, Response } from "express";
-// import { ZodError } from "zod";
-// import User from "../models/user";
-// import crypto from "crypto";
-// import { hashPassword } from "../services/auth";
-// import {
-//   createUserSchema,
-//   updateUserSchema,
-// } from "../middlewares/validationSchemas";
-// import { NotFoundError, DuplicateError } from "../middlewares/errorHandler";
-// import moment from "moment";
-
-// const createUser = async (req: Request, res: Response, next: NextFunction) => {
-//   try {
-//     const parsed = createUserSchema.parse(req.body);
-//     const { name, dateOfBirth, email, password } = parsed;
-
-//     // Hash the password
-//     const hashedPassword = hashPassword(password);
-
-//     // Check if the email already exists
-//     const existingUser = await User.findOne({ email });
-//     if (existingUser) {
-//       throw new DuplicateError("Email must be unique");
-//     }
-
-//     // Format dateOfBirth
-//     const formattedDateOfBirth = moment(dateOfBirth).format("DD-MMM-YYYY");
-
-//     // Create the new user
-//     const newUser = new User({
-//       name,
-//       dateOfBirth: formattedDateOfBirth,
-//       email,
-//       password: hashedPassword,
-//     });
-
-//     // Save the new user
-//     const savedUser = await newUser.save();
-//     res.status(201).json(savedUser);
-//   } catch (error) {
-//     if (error instanceof ZodError) {
-//       const formattedErrors = error.issues.map((issue) => {
-//         let message = "";
-
-//         switch (issue.path[0]) {
-//           case "name":
-//             message = "Name is required";
-//             break;
-//           case "email":
-//             message = "Invalid email";
-//             break;
-//           // etc for other fields
-
-//           default:
-//             message = issue.message;
-//         }
-
-//         return `${issue.path[0]} ${message}`;
-//       });
-
-//       res.status(400).send({
-//         message: formattedErrors,
-//       });
-//     }
-//     next(error);
-//   }
-// };
-
-// // Get all users
-// const getUsers = async (req: Request, res: Response, next: NextFunction) => {
-//   try {
-//     const users = await User.find();
-//     res.json(users);
-//   } catch (error) {
-//     next(error);
-//   }
-// };
-
-// // Get user by ID
-// const getUserById = async (req: Request, res: Response, next: NextFunction) => {
-//   try {
-//     const id = req.params.id;
-
-//     // const user =  users.find((user) => user.id === id);
-//     const user = await User.findById(id);
-//     if (!user) {
-//       throw new NotFoundError("User not found");
-//     }
-//     res.json(user);
-//   } catch (error) {
-//     next(error);
-//   }
-// };
-
-// // Update user by ID
-// const updateUserById = async (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction
-// ) => {
-//   try {
-//     const id = req.params.id;
-
-//     // validae input
-//     const parsed = updateUserSchema.parse(req.body);
-//     const { name, dateOfBirth, email, password } = parsed;
-
-//     // Hash the password
-//     const hashedPassword = password
-//       ? crypto.createHash("sha256").update(password).digest("hex")
-//       : undefined;
-
-//     // Format dateOfBirth
-//     const formattedDateOfBirth = moment(dateOfBirth).format("DD-MMM-YYYY");
-
-//     const updateUser = await User.findByIdAndUpdate(
-//       id,
-//       {
-//         name,
-//         dateOfBirth: formattedDateOfBirth,
-//         email,
-//         password: hashedPassword,
-//       },
-//       { new: true }
-//     );
-
-//     if (!updateUser) {
-//       throw new NotFoundError("User not found");
-//     }
-
-//     res.json(updateUser);
-//   } catch (error) {
-//     if (error instanceof ZodError) {
-//       const formattedErrors = error.issues.map((issue) => {
-//         let message = "";
-
-//         switch (issue.path[0]) {
-//           case "name":
-//             message = "is required";
-//             break;
-//           case "email":
-//             message = "Invalid";
-//             break;
-//           case "password":
-//             message = "should be more than 6 digits";
-//             break;
-//           // etc for other fields
-
-//           default:
-//             message = issue.message;
-//         }
-
-//         return `${issue.path[0]} ${message}`;
-//       });
-
-//       res.status(400).send({
-//         message: formattedErrors,
-//       });
-//       // etc for other fields
-//     }
-//     next(error);
-//   }
-// };
-
-// // Delete user by ID
-// const deleteUserById = async (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction
-// ) => {
-//   try {
-//     const id = req.params.id;
-//     // const userIndex = users.findIndex((user) => user.id === id);
-//     const deletedUser = await User.findByIdAndDelete(id);
-//     if (!deletedUser) {
-//       throw new NotFoundError("User not found");
-//     }
-
-//     res.json(deletedUser);
-//   } catch (error) {
-//     next(error);
-//   }
-// };
-
-// export { createUser, getUsers, getUserById, updateUserById, deleteUserById };
-// }
-
-// controllers/UserController.ts
 import {
   Controller,
   Get,
@@ -200,76 +10,79 @@ import {
   Path,
 } from "tsoa";
 import User from "../models/user";
-import DuplicateError from "../errors/duplicateError";
+import APIError from "../errors/apiError";
 // import
-import moment from "moment";
 import UserService from "../services/user.service";
-import { ZodError } from "zod";
-import { Response, response } from "express";
 
 interface CreateUserRequest {
   name: string;
-  dateOfBirth: Date;
   email: string;
   password: string;
 }
-@Route("/")
+interface UpdateUserRequest {
+  name?: string;
+  email?: string;
+  password?: string;
+}
+const userService = new UserService();
+
+@Route("/user")
 export class UserController extends Controller {
   @Post()
   public async createUser(
     @Body() requestBody: CreateUserRequest
   ): Promise<any> {
     try {
-      const { name, dateOfBirth, email, password } = requestBody;
-
-      const userService = new UserService()
-      const newUser = await userService.create({name,dateOfBirth,email, password})
-
-      // Check if the email already exists
-      const existingUser = await User.findOne({ email });
-      if (existingUser) {
-        throw new DuplicateError("Email must be unique");
-      }
-
-      // Format dateOfBirth      
+      const { name,  email, password } = requestBody;
+      const newUser = await userService.create({
+        name,
+        email,
+        password,
+      });
       return newUser.user;
     } catch (error) {
-      this.setStatus(400);
-      if (error instanceof ZodError) {
-        const formattedErrors = error.issues.map((issue) => {
-          let message = "";
-
-          switch (issue.path[0]) {
-            case "name":
-              message = "Name is required";
-              break;
-            case "email":
-              message = "Invalid email";
-              break;
-            // etc for other fields
-
-            default:
-              message = issue.message;
-          }
-
-          return `${issue.path[0]} ${message}`;
-        });
-
-        throw new Error(formattedErrors.join(", "));
-      }
       throw error;
     }
   }
 
   @Get()
-  public async getUsers(): Promise<any>{
+  public async getUsers(): Promise<any> {
     try {
-      const users = await User.find()
-      return users
-    }catch(error){
-      this.setStatus(404)
+      const users = await userService.getAll();
+      return users;
+    } catch (error) {
+      this.setStatus(404);
+    }
+  }
+  @Get(":id")
+  public async getUserById(@Path("id") id: string): Promise<any | null> {
+    try {
+      return await userService.getById(id);
+    } catch (error) {
+      if (error instanceof APIError) {
+        this.setStatus(404);
+        return null;
+      }
+      throw error;
+    }
+  }
+  @Put(":id")
+  public async updateUserById(
+    @Path("id") id: string,
+    @Body() requestBody: UpdateUserRequest
+  ): Promise<any> {
+    try {
+      const { name, email, password } = requestBody;
+      const updateUser = await userService.updateById(id, {
+        name,
+        email,
+        password,
+      });
+      return updateUser.user;
+    } catch (error) {
+      throw error;
     }
   }
 
-  // Other controller methods (getUserById, updateUserById, deleteUserById) can be similarly defined
+  // Other controller methods (deleteUserById) can be similarly defined
 }
