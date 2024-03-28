@@ -30,17 +30,14 @@ export default class UserService {
     }
   }
 
-  async getAll(){
+  async getAll(page: number = 1, size: number = 5) {
     try {
-      const users = await this.repo.findAllUsers()
-     if(!users){
-      return null
-     }
-     return {
-      users
-     }
+      const { users, pagination } = await this.repo.findAllUsers(page, size);
+      // const { users, totalUsers } = await this.repo.findAllUsers();
+      return { users: users, pagination };
+      // return { users, totalUsers };
     } catch (error) {
-      throw error
+      throw error;
     }
   }
 
@@ -76,6 +73,15 @@ export default class UserService {
       };
     } catch (error) {
       throw error;
+    }
+  }
+
+  async deleteById(id: string): Promise<{message: string}>{
+    try{
+      await this.repo.deleteUserById({id})
+      return {message: "User deleted successfully"}
+    }catch(error){
+      throw error
     }
   }
 }

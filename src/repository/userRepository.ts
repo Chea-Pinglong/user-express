@@ -25,12 +25,23 @@ export default class UserRepository {
     }
   }
 
-  async findAllUsers(){
-    try {
-      const users = await UserModel.find()
-      return users;
+  async findAllUsers(page: number = 1, size: number = 5) {
+    try {  
+      const totalUsers = await UserModel.countDocuments({})
+
+      const currPage = Math.max(1,Math.min(page, Math.ceil(totalUsers/size)))
+      const totalPages = Math.ceil(totalUsers / size)
+      const skip = (currPage - 1) * size
+      const users = await UserModel.find({}, null, {skip, limit: size})
+    
+      // return {users, totalUsers};
+      return { users, 
+        pagination: {
+        currPage, totalPages
+      } 
+    };
     } catch (error) {
-      throw new APIError("Unable to fetch all user")
+      throw new APIError("Unable to fetch all user");
     }
   }
 
@@ -70,4 +81,19 @@ export default class UserRepository {
       throw error;
     }
   }
+
+  async deleteUserById({id}: {id: string}){
+    try {
+      const existingUser = await this.findUserById({id})
+      if(!existingUser){
+        throw new APIError("User not found")
+      }
+
+      await UserModel.findByIdAndDelete(id)
+      return {message: "User delete successfully"}
+    } catch (error) {
+      throw error
+    }
+  }
+  
 }

@@ -5,11 +5,10 @@ import {
   Put,
   Delete,
   Route,
-  Request,
   Body,
   Path,
+  Query,
 } from "tsoa";
-import User from "../models/user";
 import APIError from "../errors/apiError";
 // import
 import UserService from "../services/user.service";
@@ -33,7 +32,7 @@ export class UserController extends Controller {
     @Body() requestBody: CreateUserRequest
   ): Promise<any> {
     try {
-      const { name,  email, password } = requestBody;
+      const { name, email, password } = requestBody;
       const newUser = await userService.create({
         name,
         email,
@@ -46,14 +45,18 @@ export class UserController extends Controller {
   }
 
   @Get()
-  public async getUsers(): Promise<any> {
+  public async getUsers(
+    @Query("page") page: number = 1
+    // @Query("size") size: number = 5
+  ): Promise<any> {
     try {
-      const users = await userService.getAll();
-      return users;
+      const { users, pagination } = await userService.getAll(page);
+      return { users, pagination };
     } catch (error) {
       this.setStatus(404);
     }
   }
+
   @Get(":id")
   public async getUserById(@Path("id") id: string): Promise<any | null> {
     try {
@@ -66,6 +69,7 @@ export class UserController extends Controller {
       throw error;
     }
   }
+  
   @Put(":id")
   public async updateUserById(
     @Path("id") id: string,
@@ -84,5 +88,12 @@ export class UserController extends Controller {
     }
   }
 
-  // Other controller methods (deleteUserById) can be similarly defined
+  @Delete(":id")
+  public async deleteUserById(@Path("id") id: string): Promise<any> {
+    try {
+      return await userService.deleteById(id);
+    } catch (error) {
+      throw error;
+    }
+  }
 }
