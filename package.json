@@ -5,7 +5,10 @@
     "@types/ejs": "^3.1.5",
     "@types/express": "^4.17.21",
     "@types/jest": "^29.5.12",
+    "@types/jsonwebtoken": "^9.0.6",
     "@types/mongodb-memory-server": "^2.3.0",
+    "@types/nodemailer": "^6.4.14",
+    "@types/on-headers": "^1.0.3",
     "@types/supertest": "^6.0.2",
     "@types/swagger-ui-express": "^4.1.6",
     "cross-env": "^7.0.3",
@@ -19,15 +22,12 @@
   },
   "name": "user-express",
   "version": "1.0.0",
-  "main": "src/app.ts",
+  "main": "src/index.ts",
   "scripts": {
-    "test": "jest --watchAll",
-    "build": "tsc",
-    "swagger": "npx tsoa spec-and-routes",
-    "swagger:watch": "nodemon --watch 'src/**/*' --exec 'yarn swagger'",
-    "serve": "cross-env NODE_ENV=development nodemon src/app.ts",
-    "start": "node build/app.js",
-    "dev": "concurrently \"npm run swagger:watch\" \"npm run serve\""
+    "dev": "cross-env NODE_ENV=development nodemon src/index.ts",
+   
+    "gen:all": "npm run gen:spec && npm run gen:routes",
+    "test": "cross-env NODE_ENV=testing jest --watchAll"
   },
   "jest": {
     "testEnvironment": "node",
@@ -46,18 +46,23 @@
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.2",
     "concurrently": "^8.2.2",
+    "dotenv": "^16.4.5",
     "ejs": "^3.1.9",
     "express": "^4.19.2",
     "gitignore": "^0.7.0",
     "https": "^1.0.0",
+    "jsonwebtoken": "^9.0.2",
     "moment-timezone": "^0.5.45",
     "mongoose": "^8.2.1",
     "mongoose-paginate": "^5.0.3",
     "node-fetch": "^3.3.2",
+    "nodemailer": "^6.9.13",
+    "on-headers": "^1.0.2",
     "redoc-express": "^2.1.0",
     "swagger": "^0.0.1",
     "swagger-ui-express": "^5.0.0",
     "tsoa": "^6.2.0",
+    "winston": "^3.13.0",
     "zod": "^3.22.4"
   }
 }

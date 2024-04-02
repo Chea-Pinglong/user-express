@@ -1,31 +1,33 @@
-import express, { urlencoded } from "express";
-import userRoutes from "./routes/userRoutes";
-import { db, MONGODB_URI } from "./config/database";
-import mongoose from "mongoose";
+import express, { Request, Response } from "express";
 import { errorHandler } from "./middlewares/errorHandler";
+import loggerMiddleware from "./middlewares/logger-handler";
+import redoc from "redoc-express";
 import swaggerUi from "swagger-ui-express";
 import * as swaggerDocument from "../public/swagger.json";
-import redoc from "redoc-express";
 import { RegisterRoutes } from "./routes/routes";
 
-/**
- * Initializes Express app and connects to MongoDB database.
- * Exports app and db instances.
- */
-mongoose.connect(MONGODB_URI);
 
 const app = express();
 
+// =======================
+// Global Middlewares
+// =======================
+
+// Access Request Body (JSON)
 app.use(express.json());
 app.use(express.static("public"));
-app.use(urlencoded({ extended: true}));
 
-// Routes
-// app.use(userRoutes);
+// Logger
+app.use(loggerMiddleware);
+
+// ========================
+// Global API V1
+// ========================
 RegisterRoutes(app);
 
+// API Documentation
 app.get(
-  "/docs",
+  "/wiki-docs",
   redoc({
     title: "API Docs",
     specUrl: "/swagger.json",
@@ -33,7 +35,7 @@ app.get(
       theme: {
         colors: {
           primary: {
-            main: "#1234F6",
+            main: "#6EC5AB",
           },
         },
         typography: {
@@ -41,8 +43,8 @@ app.get(
           fontSize: "15px",
           lineHeight: "1.5",
           code: {
-            code: "#FF11CC",
-            backgroundColor: "#AABBCC",
+            code: "#87E8C7",
+            backgroundColor: "#4D4D4E",
           },
         },
         menu: {
@@ -52,19 +54,11 @@ app.get(
     },
   })
 );
-
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-db.once("open", () => {
-  console.log(`MongoDB connected to ${MONGODB_URI}`);
-});
-
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log(`Server is running on port http://localhost:${PORT}`);
-});
-
+// ========================
+// Global Error Handler
+// ========================
 app.use(errorHandler);
 
 export default app;

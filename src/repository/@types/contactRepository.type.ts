@@ -1,11 +1,11 @@
-export interface UserCreateRepository {
+export interface ContactCreateRepository {
     name: string
     email: string
     password: string
 
 }
 
-export interface UserUpdateRepository{
+export interface ContactUpdateRepository{
     id: string
     name?: string
     email?: string

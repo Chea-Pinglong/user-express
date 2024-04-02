@@ -1,27 +1,54 @@
 import mongoose from "mongoose";
+import { logger } from "../utils/logger";
 
-export const MONGODB_URI = "mongodb://localhost:27017/myuser";
+export default class MongoDBConnector {
+  private static instance: MongoDBConnector;
+  private mongoUrl: string = "";
+  private db = mongoose.connection;
 
-mongoose.connect(MONGODB_URI);
+  private constructor() {
+    this.setupEventListeners();
+  }
 
-const db = mongoose.connection;
+  public static getInstance(): MongoDBConnector {
+    if (!MongoDBConnector.instance) {
+      MongoDBConnector.instance = new MongoDBConnector();
+    }
 
-db.on("error", (error) => {
-  console.error("MongoDB connection error:", error);
-  process.exit(1); // Exit with failure status
-});
+    return MongoDBConnector.instance;
+  }
 
-db.on('disconnected', () => {
-  console.log('MongoDB disconnected');
-});
+  public static resetInstance(): void {
+    MongoDBConnector.instance = new MongoDBConnector();
+  }
 
-// Try to reconnect
-db.on('reconnected', () => {
-  console.log('MongoDB reconnected');
-});
+  private setupEventListeners(): void {
+    this.db.on("connected", () => {
+      logger.info("MongoDB connected");
+    });
 
+    this.db.on("error", (error) => {
+      logger.error("Error in MongoDB connection", { error });
+    });
 
+    this.db.on("disconnected", () => {
+      logger.info("MongoDB disconnected");
+    });
+  }
 
+  public async connect({ url }: { url: string }): Promise<void> {
+    this.mongoUrl = url;
+    try {
+      await mongoose.connect(this.mongoUrl);
+      logger.info("Successfully connected to MongoDB");
+    } catch (err) {
+      logger.error("Initial MongoDB connection error", { err });
+    }
+  }
 
-
-export { db };
+  public async disconnect(): Promise<void> {
+    await mongoose.disconnect();
+    this.db.removeAllListeners();
+    logger.info("MongoDB disconnected and listeners removed");
+  }
+}

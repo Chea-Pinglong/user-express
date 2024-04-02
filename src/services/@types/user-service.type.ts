@@ -1,5 +1,4 @@
-import { IUserDocument } from "../../models/user";
+import { IUserDocument } from "../../models/user.model";
 
-export interface UserResult{
-    user: IUserDocument
-}
+export interface UserSignUpResult extends IUserDocument {}
+export interface UserSignInResult extends IUserDocument {}

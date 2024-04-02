@@ -1,87 +1,159 @@
-import UserRepository from "../repository/userRepository";
+import AccountVerificationModel from "../models/account-verification.model";
+import { AccountVerificationRepository } from "../repository/account-verification-repository";
+import UserRepository from "../repository/user-repository";
 import APIError from "../errors/apiError";
-import { UserSchema } from "../schema/userSchema";
-import { hashPassword } from "../utils/auth";
-import { UserResult } from "./@types/user-service.type";
-import { UserSchemaType } from "../schema/@types/user";
+import DuplicateError from "../errors/duplicateError";
 
-export default class UserService {
-  private repo: UserRepository;
+import { UserSignUpSchemaType, UserSignInSchemaType } from "../schema/@types/user";
+import { generateEmailVerificationToken } from "../utils/account-verification";
+import { StatusCode } from "../utils/statusCode";
+import EmailSender from "../utils/email-sender";
+import {
+  hashPassword,
+  generateSignature,
+  validatePassword,
+} from "../utils/jwt";
+import { UserSignUpResult } from "./@types/user-service.type";
+
+class UserService {
+  private userRepo: UserRepository;
+  private accountVerificationRepo: AccountVerificationRepository;
 
   constructor() {
-    this.repo = new UserRepository();
+    this.userRepo = new UserRepository();
+    this.accountVerificationRepo = new AccountVerificationRepository();
   }
 
-  async create(userType: UserSchemaType): Promise<UserResult> {
+  async SignUp(userDetails: UserSignUpSchemaType): Promise<UserSignUpResult> {
     try {
-      const { name, email, password } = userType;
+      const { email, password } = userDetails;
+
+      // Convert User Password to Hash Password
       const hashedPassword = await hashPassword(password);
 
-      const newUser = await this.repo.createUser({
-        name,
+      // Save User to Database
+      const newUser = await this.userRepo.CreateUser({
         email,
         password: hashedPassword,
       });
-      return {
-        user: newUser,
-      };
+
+      // Return Response
+      return newUser;
     } catch (error: unknown) {
+      if (error instanceof DuplicateError) {
+        const existedUser = await this.userRepo.FindUser({
+          email: userDetails.email,
+        });
+
+        if (!existedUser?.isVerified) {
+          // Resent the token
+          await this.SendVerifyEmailToken({ userId: existedUser?._id });
+        }
+
+        // Throw or handle the error based on your application's needs
+        throw new APIError(
+          "A user with this email already exists. Verification email resent."
+        );
+      }
       throw error;
     }
   }
 
-  async getAll(page: number = 1, size: number = 5) {
+  async SendVerifyEmailToken({ userId }: { userId: string }) {
+    // TODO
+    // 1. Generate Verify Token
+    // 2. Save the Verify Token in the Database
+    // 3. Get the Info User By Id
+    // 4. Send the Email to the User
+
     try {
-      const { users, pagination } = await this.repo.findAllUsers(page, size);
-      // const { users, totalUsers } = await this.repo.findAllUsers();
-      return { users: users, pagination };
-      // return { users, totalUsers };
+      // Step 1
+      const emailVerificationToken = generateEmailVerificationToken();
+
+      // Step 2
+      const accountVerification = new AccountVerificationModel({
+        userId,
+        emailVerificationToken,
+      });
+      const newAccountVerification = await accountVerification.save();
+
+      // Step 3
+      const existedUser = await this.userRepo.FindUserById({ id: userId });
+      if (!existedUser) {
+        throw new APIError("User does not exist!");
+      }
+
+      // Step 4
+      const emailSender = EmailSender.getInstance();
+      emailSender.sendSignUpVerificationEmail({
+        toEmail: existedUser.email,
+        emailVerificationToken: newAccountVerification.emailVerificationToken,
+      });
     } catch (error) {
       throw error;
     }
   }
 
-  async getById(id: string): Promise<UserResult | null> {
-    try {
-      const user = await this.repo.findUserById({ id });
-      if (!user) {
-        return null;
-      }
-      return { user };
-    } catch (error) {
-      throw error;
+  async VerifyEmailToken({ token }: { token: string }) {
+    const isTokenExist =
+      await this.accountVerificationRepo.FindVerificationToken({ token });
+
+    if (!isTokenExist) {
+      throw new APIError(
+        "Verification token is invalid",
+        StatusCode.BadRequest
+      );
     }
+
+    // Find the user associated with this token
+    const user = await this.userRepo.FindUserById({
+      id: isTokenExist.userId.toString(),
+    });
+    if (!user) {
+      throw new APIError("User does not exist.", StatusCode.NotFound);
+    }
+
+    // Mark the user's email as verified
+    user.isVerified = true;
+    await user.save();
+
+    // Remove the verification token
+    await this.accountVerificationRepo.DeleteVerificationToken({ token });
+
+    return user;
   }
 
-  async updateById(
-    id: string,
-    updates: Partial<UserSchemaType>
-  ): Promise<UserResult> {
-    try {
-      const user = await this.getById(id);
-      if (!user) {
-        throw new APIError("User not found", 404);
-      }
+  async Login(userDetails: UserSignInSchemaType) {
+    // TODO:
+    // 1. Find user by email
+    // 2. Validate the password
+    // 3. Generate Token & Return
 
-      if (updates.password) {
-        updates.password = await hashPassword(updates.password);
-      }
+    // Step 1
+    const user = await this.userRepo.FindUser({ email: userDetails.email });
 
-      const updatedUser = await this.repo.updateUserById({ id });
-      return {
-        user: updatedUser,
-      };
-    } catch (error) {
-      throw error;
+    if (!user) {
+      throw new APIError("User not exist", StatusCode.NotFound);
     }
-  }
 
-  async deleteById(id: string): Promise<{message: string}>{
-    try{
-      await this.repo.deleteUserById({id})
-      return {message: "User deleted successfully"}
-    }catch(error){
-      throw error
+    // Step 2
+    const isPwdCorrect = await validatePassword({
+      enteredPassword: userDetails.password,
+      savedPassword: user.password,
+    });
+
+    if (!isPwdCorrect) {
+      throw new APIError(
+        "Email or Password is incorrect",
+        StatusCode.BadRequest
+      );
     }
+
+    // Step 3
+    const token = await generateSignature({ userId: user._id });
+
+    return token;
   }
 }
+
+export default UserService;

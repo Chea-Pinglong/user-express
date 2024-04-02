@@ -11,56 +11,53 @@ import {
 } from "tsoa";
 import APIError from "../errors/apiError";
 // import
-import UserService from "../services/user.service";
+import ContactService from "../services/contact.service";
 
-interface CreateUserRequest {
+interface CreateContactRequest {
   name: string;
   email: string;
   password: string;
 }
-interface UpdateUserRequest {
+interface UpdateContactRequest {
   name?: string;
   email?: string;
   password?: string;
 }
-const userService = new UserService();
+const contactService = new ContactService();
 
-@Route("/user")
-export class UserController extends Controller {
+@Route("/contact")
+export class ContactController extends Controller {
   @Post()
   public async createUser(
-    @Body() requestBody: CreateUserRequest
+    @Body() requestBody: CreateContactRequest
   ): Promise<any> {
     try {
       const { name, email, password } = requestBody;
-      const newUser = await userService.create({
+      const newContact = await contactService.create({
         name,
         email,
         password,
       });
-      return newUser.user;
+      return newContact.Contact;
     } catch (error) {
       throw error;
     }
   }
 
   @Get()
-  public async getUsers(
-    @Query("page") page: number = 1
-    // @Query("size") size: number = 5
-  ): Promise<any> {
+  public async getContacts(@Query("page") page: number = 1): Promise<any> {
     try {
-      const { users, pagination } = await userService.getAll(page);
-      return { users, pagination };
+      const { contact, pagination } = await contactService.getAll(page);
+      return { contact, pagination };
     } catch (error) {
       this.setStatus(404);
     }
   }
 
   @Get(":id")
-  public async getUserById(@Path("id") id: string): Promise<any | null> {
+  public async getContactById(@Path("id") id: string): Promise<any | null> {
     try {
-      return await userService.getById(id);
+      return await contactService.getById(id);
     } catch (error) {
       if (error instanceof APIError) {
         this.setStatus(404);
@@ -69,29 +66,29 @@ export class UserController extends Controller {
       throw error;
     }
   }
-  
+
   @Put(":id")
-  public async updateUserById(
+  public async updateContactById(
     @Path("id") id: string,
-    @Body() requestBody: UpdateUserRequest
+    @Body() requestBody: UpdateContactRequest
   ): Promise<any> {
     try {
       const { name, email, password } = requestBody;
-      const updateUser = await userService.updateById(id, {
+      const updateContact = await contactService.updateById(id, {
         name,
         email,
         password,
       });
-      return updateUser.user;
+      return updateContact.Contact;
     } catch (error) {
       throw error;
     }
   }
 
   @Delete(":id")
-  public async deleteUserById(@Path("id") id: string): Promise<any> {
+  public async deleteContactById(@Path("id") id: string): Promise<any> {
     try {
-      return await userService.deleteById(id);
+      return await contactService.deleteById(id);
     } catch (error) {
       throw error;
     }

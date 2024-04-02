@@ -7,7 +7,7 @@
 		"requestBodies": {},
 		"responses": {},
 		"schemas": {
-			"CreateUserRequest": {
+			"CreateContactRequest": {
 				"properties": {
 					"name": {
 						"type": "string"
@@ -27,7 +27,7 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"UpdateUserRequest": {
+			"UpdateContactRequest": {
 				"properties": {
 					"name": {
 						"type": "string"
@@ -39,6 +39,58 @@
 						"type": "string"
 					}
 				},
+				"type": "object",
+				"additionalProperties": false
+			},
+			"IUser": {
+				"properties": {
+					"email": {
+						"type": "string"
+					},
+					"password": {
+						"type": "string"
+					},
+					"isVerified": {
+						"type": "boolean"
+					}
+				},
+				"required": [
+					"email",
+					"password",
+					"isVerified"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"SignUpRequestBody": {
+				"properties": {
+					"email": {
+						"type": "string"
+					},
+					"password": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"email",
+					"password"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"LoginRequestBody": {
+				"properties": {
+					"email": {
+						"type": "string"
+					},
+					"password": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"email",
+					"password"
+				],
 				"type": "object",
 				"additionalProperties": false
 			}
@@ -54,7 +106,7 @@
 		"contact": {}
 	},
 	"paths": {
-		"/user": {
+		"/contact": {
 			"post": {
 				"operationId": "CreateUser",
 				"responses": {
@@ -74,14 +126,14 @@
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/CreateUserRequest"
+								"$ref": "#/components/schemas/CreateContactRequest"
 							}
 						}
 					}
 				}
 			},
 			"get": {
-				"operationId": "GetUsers",
+				"operationId": "GetContacts",
 				"responses": {
 					"200": {
 						"description": "Ok",
@@ -107,9 +159,9 @@
 				]
 			}
 		},
-		"/user/{id}": {
+		"/contact/{id}": {
 			"get": {
-				"operationId": "GetUserById",
+				"operationId": "GetContactById",
 				"responses": {
 					"200": {
 						"description": "Ok",
@@ -135,7 +187,7 @@
 				]
 			},
 			"put": {
-				"operationId": "UpdateUserById",
+				"operationId": "UpdateContactById",
 				"responses": {
 					"200": {
 						"description": "Ok",
@@ -162,14 +214,14 @@
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/UpdateUserRequest"
+								"$ref": "#/components/schemas/UpdateContactRequest"
 							}
 						}
 					}
 				}
 			},
 			"delete": {
-				"operationId": "DeleteUserById",
+				"operationId": "DeleteContactById",
 				"responses": {
 					"200": {
 						"description": "Ok",
@@ -191,6 +243,108 @@
 						}
 					}
 				]
+			}
+		},
+		"/auth/signup": {
+			"post": {
+				"operationId": "SignUp",
+				"responses": {
+					"201": {
+						"description": "Created",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/IUser"
+								}
+							}
+						}
+					}
+				},
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/SignUpRequestBody"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/auth/verify": {
+			"get": {
+				"operationId": "VerifyEmail",
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"token": {
+											"type": "string"
+										}
+									},
+									"required": [
+										"token"
+									],
+									"type": "object"
+								}
+							}
+						}
+					}
+				},
+				"security": [],
+				"parameters": [
+					{
+						"in": "query",
+						"name": "token",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/auth/login": {
+			"post": {
+				"operationId": "LoginWithEmail",
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"token": {
+											"type": "string"
+										}
+									},
+									"required": [
+										"token"
+									],
+									"type": "object"
+								}
+							}
+						}
+					}
+				},
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/LoginRequestBody"
+							}
+						}
+					}
+				}
 			}
 		}
 	},
