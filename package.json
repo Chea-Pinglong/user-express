@@ -9,6 +9,8 @@
     "@types/mongodb-memory-server": "^2.3.0",
     "@types/nodemailer": "^6.4.14",
     "@types/on-headers": "^1.0.3",
+    "@types/passport": "^1.0.16",
+    "@types/passport-google-oauth2": "^0.1.8",
     "@types/supertest": "^6.0.2",
     "@types/swagger-ui-express": "^4.1.6",
     "cross-env": "^7.0.3",
@@ -25,7 +27,6 @@
   "main": "src/index.ts",
   "scripts": {
     "dev": "cross-env NODE_ENV=development nodemon src/index.ts",
-   
     "gen:all": "npm run gen:spec && npm run gen:routes",
     "test": "cross-env NODE_ENV=testing jest --watchAll"
   },
@@ -42,6 +43,7 @@
   "description": "",
   "dependencies": {
     "@types/node-fetch": "^2.6.11",
+    "axios": "^1.6.8",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.2",
@@ -49,6 +51,8 @@
     "dotenv": "^16.4.5",
     "ejs": "^3.1.9",
     "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "gapi-script": "^1.2.0",
     "gitignore": "^0.7.0",
     "https": "^1.0.0",
     "jsonwebtoken": "^9.0.2",
@@ -58,6 +62,9 @@
     "node-fetch": "^3.3.2",
     "nodemailer": "^6.9.13",
     "on-headers": "^1.0.2",
+    "passport": "^0.7.0",
+    "passport-google-oauth2": "^0.2.0",
+    "react-google-login": "^5.2.2",
     "redoc-express": "^2.1.0",
     "swagger": "^0.0.1",
     "swagger-ui-express": "^5.0.0",

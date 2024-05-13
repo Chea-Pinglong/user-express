@@ -37,7 +37,6 @@ export default class ContactRepository {
       const skip = (currPage - 1) * size;
       const contact = await ContactModel.find({}, null, { skip, limit: size });
 
-      // return {Contacts, totalContacts};
       return {
         contact,
         pagination: {
@@ -53,7 +52,7 @@ export default class ContactRepository {
   async checkEmail({ email }: { email: string }) {
     try {
       const existingContact = await ContactModel.findOne({ email: email });
-      console.log(existingContact);
+      console.log("Existing contact: ", existingContact)
       return existingContact;
     } catch (error) {
       return null;

@@ -16,6 +16,10 @@ export type BuildSignUpVerificationEmailArgs = {
   emailVerificationLink: string;
 };
 
+export type BuildSignUpVerificationExpiredArgs = {
+  emailVerificationExpired: Date
+}
+
 export default class NodemailerEmailApi implements EmailApi {
   private transporter: Mail;
 
@@ -28,26 +32,31 @@ export default class NodemailerEmailApi implements EmailApi {
   async sendSignUpVerificationEmail(
     args: EmailApiSendSignUpVerificationEmailArgs
   ): Promise<EmailApiSendEmailResponse> {
-    const { toEmail, emailVerificationToken } = args;
+    try {
+      const { toEmail, emailVerificationToken } = args;
 
-    const emailVerificationLink = this.buildEmailVerificationLink({
-      emailVerificationToken,
-    });
+      const emailVerificationLink = this.buildEmailVerificationLink({
+        emailVerificationToken,
+      });
 
-    const subject = "welcome to Express! Please verify your email address";
-    const textBody = this.buildSignUpVerificationEmailTextBody({
-      emailVerificationLink,
-    });
-    const htmlBody = this.buildSignUpVerificationEmailHtmlBody({
-      emailVerificationLink,
-    });
+      const subject = "welcome to Express! Please verify your email address";
+      const textBody = this.buildSignUpVerificationEmailTextBody({
+        emailVerificationLink,
+      });
+      const htmlBody = this.buildSignUpVerificationEmailHtmlBody({
+        emailVerificationLink,
+      });
 
-    await this.sendEmail({ toEmail, subject, textBody, htmlBody });
+      await this.sendEmail({ toEmail, subject, textBody, htmlBody });
 
-    return {
-      toEmail,
-      status: "success",
-    };
+      return {
+        toEmail,
+        status: "success",
+      };
+    } catch (error) {
+      console.log("error from nodemailer  ", error);
+      throw error;
+    }
   }
 
   private buildEmailVerificationLink = (
@@ -73,7 +82,7 @@ export default class NodemailerEmailApi implements EmailApi {
     const { emailVerificationLink } = args;
 
     return `
-        <h1>Welcome to Micro-sample</h1>
+        <h1>Welcome to Express</h1>
         <br/>
         Welcome to Express
         <br/>
@@ -81,7 +90,9 @@ export default class NodemailerEmailApi implements EmailApi {
         Please click on the link below to verify your email address:
         <br/>
         <br/>
-        <a href="${emailVerificationLink}">${emailVerificationLink}</a>`;
+        <a href="${emailVerificationLink}">${emailVerificationLink}</a>
+        <br/>
+        <h2>Verify Before: </h2>`;
   };
 
   private async sendEmail(args: EmailApiSendEmailArgs): Promise<void> {

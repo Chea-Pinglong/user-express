@@ -21,13 +21,12 @@ app.use(express.static("public"));
 app.use(loggerMiddleware);
 
 // ========================
-// Global API V1
 // ========================
 RegisterRoutes(app);
 
 // API Documentation
 app.get(
-  "/wiki-docs",
+  "/docs",
   redoc({
     title: "API Docs",
     specUrl: "/swagger.json",

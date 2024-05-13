@@ -33,11 +33,14 @@ export class ContactController extends Controller {
   ): Promise<any> {
     try {
       const { name, email, password } = requestBody;
+      
       const newContact = await contactService.create({
         name,
         email,
         password,
       });
+
+        console.log("new contact: ", newContact)
       return newContact.Contact;
     } catch (error) {
       throw error;

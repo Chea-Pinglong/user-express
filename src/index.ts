@@ -15,7 +15,7 @@ async function run() {
         ? "./config/.env"
         : currentEnv === "staging"
         ? "./config/.env.staging"
-        : "./config/.env.production"
+        : "./config/.env.prod"
     );
     const config = createConfig(configPath);
 
@@ -24,8 +24,11 @@ async function run() {
 
     // Activate Email Sender with EmailAPI [NodeMailer]
     const emailSender = EmailSender.getInstance();
+  
+
     emailSender.activate();
     emailSender.setEmailApi(new NodemailerEmailApi());
+
 
     // Activate Database
     const mongodb = MongoDBConnector.getInstance();
@@ -34,6 +37,7 @@ async function run() {
     // Start Server
     const server = app.listen(config.port, () => {
       logger.info(`Server is listening on port: http://localhost:${process.env.PORT}`);
+      
     });
 
     const exitHandler = async () => {

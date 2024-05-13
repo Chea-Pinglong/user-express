@@ -39,7 +39,7 @@ export default class ContactService {
     try {
       const { contact, pagination } = await this.repo.findAllContacts(page, size);
 
-      return { contact: contact, pagination };
+      return { contact, pagination };
     
     } catch (error) {
       throw error;
@@ -49,6 +49,7 @@ export default class ContactService {
   async getById(id: string): Promise<ContactResult | null> {
     try {
       const Contact = await this.repo.findContactById({ id });
+      console.log(Contact)
       if (!Contact) {
         return null;
       }

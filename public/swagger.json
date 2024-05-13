@@ -47,17 +47,12 @@
 					"email": {
 						"type": "string"
 					},
-					"password": {
-						"type": "string"
-					},
 					"isVerified": {
 						"type": "boolean"
 					}
 				},
 				"required": [
-					"email",
-					"password",
-					"isVerified"
+					"email"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -286,10 +281,14 @@
 									"properties": {
 										"token": {
 											"type": "string"
+										},
+										"message": {
+											"type": "string"
 										}
 									},
 									"required": [
-										"token"
+										"token",
+										"message"
 									],
 									"type": "object"
 								}
@@ -312,7 +311,7 @@
 		},
 		"/auth/login": {
 			"post": {
-				"operationId": "LoginWithEmail",
+				"operationId": "Login",
 				"responses": {
 					"200": {
 						"description": "OK",
@@ -345,6 +344,69 @@
 						}
 					}
 				}
+			}
+		},
+		"/auth/google": {
+			"get": {
+				"operationId": "GoogleAuth",
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"url": {
+											"type": "string"
+										}
+									},
+									"required": [
+										"url"
+									],
+									"type": "object"
+								}
+							}
+						}
+					}
+				},
+				"security": [],
+				"parameters": []
+			}
+		},
+		"/auth/google/callback": {
+			"get": {
+				"operationId": "GoogleAuthCallback",
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"token": {
+											"type": "string"
+										}
+									},
+									"required": [
+										"token"
+									],
+									"type": "object"
+								}
+							}
+						}
+					}
+				},
+				"security": [],
+				"parameters": [
+					{
+						"in": "query",
+						"name": "code",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
 			}
 		}
 	},

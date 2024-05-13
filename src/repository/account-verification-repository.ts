@@ -5,14 +5,17 @@ export class AccountVerificationRepository {
   async CreateVerificationToken({
     userId,
     token,
+    expired,
   }: {
     userId: string;
     token: string;
+    expired: Date;
   }) {
     try {
       const accountVerification = new AccountVerificationModel({
         userId,
         emailVerificationToken: token,
+        expired,
       });
 
       const newAccountVerification = await accountVerification.save();
@@ -43,4 +46,10 @@ export class AccountVerificationRepository {
       throw error;
     }
   }
+
+  async DeleteExpiredTokens() {
+    const now = new Date();
+    await AccountVerificationModel.deleteMany({ expired: { $lt: now } });
+  }
+
 }

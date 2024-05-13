@@ -8,6 +8,7 @@ function createConfig(configPath: string) {
   const requiredConfig = ["NODE_ENV", "PORT", "MONGODB_URL", "LOG_LEVEL"];
   const missingConfig = requiredConfig.filter((key) => !process.env[key]);
 
+
   if (missingConfig.length > 0) {
     throw new APIError(
       `Missing required environment variables: ${missingConfig.join(" , ")}`

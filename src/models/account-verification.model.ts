@@ -4,6 +4,7 @@ import APIError from "../errors/apiError";
 export interface IAccountVerificationDocument extends Document {
   userId: mongoose.Types.ObjectId;
   emailVerificationToken: string;
+  expired: Date;
 }
 
 export interface IAccountVerificationModel
@@ -21,6 +22,10 @@ const accountVerificationSchema = new mongoose.Schema({
       return true;
     },
   },
+  expired: {
+    type: Date,
+    required: true
+  }
 });
 
 const AccountVerificationModel = mongoose.model<
